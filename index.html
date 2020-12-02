@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Mad Driver</title>
     <script src="js/Car.js"></script>
+    <script src="js/Fuel.js"></script>
     <link rel="stylesheet" href="styles/styles.css">
 </head>
 <body>
@@ -11,8 +12,8 @@
 
 <div id="btn-control">
     <button id="btn-start" onclick="startGame()">Start</button>
-    <button onclick="resumeGame()">Play</button>
-    <button onclick="pauseGame()">Pause</button>
+    <button id="btn-resume" onclick="resumeGame()">Resume</button>
+    <button id="btn-pause" onclick="pauseGame()">Pause</button>
 </div>
 
 <img src="images/car.png" alt="myCar" style="display: none" id="myCar">
