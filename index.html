@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mad Driver</title>
+    <script src="js/Car.js"></script>
+    <link rel="stylesheet" href="styles/styles.css">
+</head>
+<body>
+<canvas id="screen" width="420" height="450" style="background-color: #737373"></canvas>
+
+<div id="btn-control">
+    <button id="btn-start" onclick="startGame()">Start</button>
+    <button onclick="resumeGame()">Play</button>
+    <button onclick="pauseGame()">Pause</button>
+</div>
+
+<img src="images/car.png" alt="myCar" style="display: none" id="myCar">
+<img src="images/car1.png" alt="otherCar" style="display: none" id="otherCar">
+<img src="images/fuel.png" alt="fuel" style="display: none" id="fuel">
+<script src="js/scripts.js"></script>
+</body>
+</html>
