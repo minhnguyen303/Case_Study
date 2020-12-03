@@ -13,3 +13,18 @@ canvas{
     width: max-content;
     margin: 10px auto;
 }
+
+#maxFuel{
+    width: 420px;
+    background-color: white;
+    margin: 10px auto;
+    border: 2px solid black;
+}
+
+#fuelBar{
+    height: 20px;
+    background-color: #c63030;
+    text-align: right;
+    width: 100%;
+}
+

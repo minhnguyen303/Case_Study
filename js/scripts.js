@@ -7,22 +7,26 @@ const imgFuel = document.getElementById('fuel');
 let yLane = -60;
 let game;
 let isPlayGame = false;
-let isPauseGame = true;
 
+let myCar;
+let otherCar;
+let fuel;
 
 // game control
 function startGame() {
-    document.getElementById('btn-start').disabled = true;
-    document.getElementById('btn-resume').disabled = true;
-    game = setInterval(updateScreen, 70);
     isPlayGame = true;
+    document.getElementById('btn-start').disabled = true;
+    //document.getElementById('btn-resume').disabled = true;
+    //document.getElementById('btn-pause').disabled = false;
+    game = setInterval(updateScreen, 70);
     //let randTime = (Math.floor(Math.random() * (10 - 5)) + 5) * 1000;
     createOtherCar();
+    createFuel();
 }
 
 function stopGame() {
-    clearInterval(game);
     isPlayGame = false;
+    clearInterval(game);
 }
 
 function gameOver() {
@@ -33,21 +37,21 @@ function gameOver() {
     context.fillStyle = '#ff0000';
     context.fillText('GAME OVER', 60, 240);
     context.closePath();
-    document.getElementById('btn-control').innerHTML = '<button id="btn-start" onclick="startGame()">Start</button>\n' +
+    /*document.getElementById('btn-control').innerHTML = '<button id="btn-start" onclick="startGame()">Start</button>\n' +
         '    <button onclick="resumeGame()">Play</button>\n' +
-        '    <button onclick="pauseGame()">Pause</button>'
+        '    <button onclick="pauseGame()">Pause</button>'*/
     document.getElementById('btn-start').disabled = false;
 }
 
 function pauseGame() {
     clearInterval(game);
-    isPauseGame = true;
+    isPlayGame = false;
     document.getElementById('btn-pause').disabled = true;
     document.getElementById('btn-resume').disabled = false;
 }
 
 function resumeGame() {
-    isPauseGame = false;
+    isPlayGame = true;
     game = setInterval(updateScreen, 70);
     document.getElementById('btn-resume').disabled = true;
     document.getElementById('btn-pause').disabled = false;
@@ -56,7 +60,7 @@ function resumeGame() {
 function onKeyDown(event) {
     if (event.key == 'ArrowLeft' || event.key == 'ArrowRight') {
         if (!isOutScreen(myCar, canvas, event.key) && isPlayGame) {
-            myCar.move(event.key);
+            carMove(event.key);
         }
     }
 }
@@ -70,7 +74,7 @@ function isOutScreen(obj, screen, direc) {
     return false;
 }
 
-function checkCrashCar(obj1, obj2) {
+function checkInteractCar(obj1, obj2) {
     let left1 = obj1.x;
     let right1 = obj1.x + obj1.width;
     let top1 = obj1.y;
@@ -87,10 +91,14 @@ function checkCrashCar(obj1, obj2) {
 }
 
 // game
-window.addEventListener('keydown', onKeyDown);
-let myCar = new Car(imgMyCar, (canvas.width / 2) - 30, canvas.height - 85);
-let otherCar = new Car(imgOtherCar, 30, -85);
-let fuel = new Fuel(imgFuel, 0, -60);
+function loadGame() {
+    window.addEventListener('keydown', onKeyDown);
+    myCar = new Car(imgMyCar, (canvas.width / 2) - 30, canvas.height - 85);
+    otherCar = new Car(imgOtherCar, 30, -85);
+    fuel = new Fuel(imgFuel, 360, -80, 50);
+    //document.getElementById('btn-resume').disabled = true;
+    //document.getElementById('btn-pause').disabled = true;
+}
 
 // display
 function drawCar(img, x, y) {
@@ -99,22 +107,58 @@ function drawCar(img, x, y) {
     context.closePath();
 }
 
-function createOtherCar() {
-    let randNum = Math.floor(Math.random() * 360);
-    setTimeout(objMove, 5000, ['Car', randNum]);
+function drawFuel(img, x, y) {
+    context.beginPath();
+    context.drawImage(img, x, y);
+    context.closePath();
 }
 
-/*function otherCarMove(x, y = 0) {
-    otherCar.setPos(parseInt(x), otherCar.y + 15);
-    if (otherCar.y >= 500) {
-        otherCar.y = -85;
-        let randTime = (Math.floor(Math.random() * (15 - 10)) + 10) * 1000;
-        setTimeout(createOtherCar, randTime);
+function createOtherCar() {
+    let randNum = Math.floor(Math.random() * 360);
+    //console.log(randNum);
+    setTimeout(objMove, 5000, 'Car', randNum);
+}
+
+function createFuel() {
+    let randNum = Math.floor(Math.random() * 360);
+    setTimeout(objMove, 5000, 'Fuel', randNum);
+}
+
+function objMove(objType, x) {
+    //console.log('' + objType + '-' + x + '-' + y )
+    if (isPlayGame) {
+        let randTime = Math.floor(Math.random() * 5) * 1000;
+        if (objType === 'Car') {
+            otherCar.setPos(parseInt(x), otherCar.y + 20);
+            if (otherCar.y >= 600) {
+                otherCar.y = -85;
+                console.log('Tạo xe mới sau ' + randTime + 'giây');
+                setTimeout(createOtherCar, randTime);
+                return;
+            }
+            setTimeout(objMove, 100, 'Car', x);
+        } else {
+            fuel.setPos(parseInt(x), fuel.y + 25);
+            if (fuel.y >= 600) {
+                fuel.y = -80;
+                fuel.point = Math.floor(Math.random() * (75 - 50)) + 50;
+                console.log('Tạo fuel mới sau ' + randTime + 'giây');
+                setTimeout(createFuel, randTime);
+                return;
+            }
+            setTimeout(objMove, 100, 'Fuel', x);
+        }
+    }
+}
+
+function carMove(direc) {
+    myCar.move(direc);
+    if (myCar.fuel <= 0) {
+        gameOver();
         return;
     }
-    y += 15;
-    setTimeout(otherCarMove, 100, [x, y]);
-}*/
+    myCar.fuel--;
+}
 
 function drawLane() {
     if (isPlayGame) {
@@ -123,7 +167,7 @@ function drawLane() {
                 yLane = -160;
             }
             context.beginPath();
-            context.fillStyle = '#000000'
+            context.fillStyle = '#ffffff'
             context.rect(120, (i * 100) + yLane, 30, 60); //x, y , rộng, cao
             context.rect(270, (i * 100) + yLane, 30, 60); // y = thứ tự * chiều cao + vị trí đã di chuyển + khoảng cách
             context.fill();
@@ -134,42 +178,35 @@ function drawLane() {
     }
 }
 
-function createFuel() {
-    let randNum = Math.floor(Math.random() * 360);
-    setTimeout(objMove, 5000, randNum);
+function addFuel(i) {
+    if (myCar.fuel > 50 && i > 50)
+        myCar.fuel = 100;
+    else
+        myCar.fuel += i;
 }
 
-function objMove(objType, x, y = 0) {
-    let randTime = (Math.floor(Math.random() * (15 - 10)) + 10) * 1000;
-    if (objType == 'Car') {
-        otherCar.setPos(parseInt(x), otherCar.y + 20);
-        if (otherCar.y >= 500) {
-            otherCar.y = -85;
-            setTimeout(createOtherCar, randTime);
-            return;
-        }
-        y += 15;
-        setTimeout(objMove, 100, ['Car', x, y]);
-    } else {
-        fuel.setPos(parseInt(x), fuel.y + 20);
-        if (fuel.y >= 500) {
-            fuel.y = -60;
-            setTimeout(createFuel, randTime);
-            return;
-        }
-        y += 15;
-        setTimeout(objMove, 100, ['fuel', x, y]);
+function drawFuelBar(num) {
+    let str = '';
+    if (num > 75) {
+        str = 'Hi'
     }
+    document.getElementById('fuelBar').style.width = num + "%";
 }
-
 
 function updateScreen() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     drawLane();
     drawCar(otherCar.img, otherCar.x, otherCar.y);
     drawCar(myCar.img, myCar.x, myCar.y);
-    if (checkCrashCar(otherCar, myCar)) {
+    drawFuel(imgFuel, fuel.x, fuel.y);
+    drawFuelBar(myCar.fuel)
+    if (checkInteractCar(otherCar, myCar)) {
         gameOver();
+    }
+    if (checkInteractCar(fuel, myCar)) {
+        //console.log('' + fuel.x + '-' + fuel.y + '-' + fuel.width + '-' + fuel.height)
+        addFuel(fuel.point);
+        fuel.setPos(fuel.x, 600);
     }
 }
 

@@ -7,13 +7,17 @@
     <script src="js/Fuel.js"></script>
     <link rel="stylesheet" href="styles/styles.css">
 </head>
-<body>
+<body onload="loadGame()">
 <canvas id="screen" width="420" height="450" style="background-color: #737373"></canvas>
+
+<div id="maxFuel">
+    <div id="fuelBar">Fuel&emsp;</div>
+</div>
 
 <div id="btn-control">
     <button id="btn-start" onclick="startGame()">Start</button>
-    <button id="btn-resume" onclick="resumeGame()">Resume</button>
-    <button id="btn-pause" onclick="pauseGame()">Pause</button>
+    <!--<button id="btn-resume" onclick="resumeGame()">Resume</button>
+    <button id="btn-pause" onclick="pauseGame()">Pause</button>-->
 </div>
 
 <img src="images/car.png" alt="myCar" style="display: none" id="myCar">
