@@ -4,20 +4,42 @@ const imgMyCar = document.getElementById('myCar');
 const imgOtherCar = document.getElementById('otherCar');
 const imgFuel = document.getElementById('fuel');
 
+const btnStart = document.getElementById('btn-start');
+const btnPause = document.getElementById('btn-pause');
+const btnResume = document.getElementById('btn-resume');
+
 let yLane = -60;
 let game;
 let isPlayGame = false;
+let isGameOver = false;
 
 let myCar;
 let otherCar;
 let fuel;
+let score = 0;
+let bestScore = (loadScore()) ? +loadScore()[1] : 0;
 
-// game control
+/* ### Game control ### */
+
+function loadGame() {
+    window.addEventListener('keydown', onKeyDown);
+    myCar = new Car(imgMyCar, (canvas.width / 2) - 30, canvas.height - 85);
+    otherCar = new Car(imgOtherCar, 30, -85);
+    fuel = new Fuel(imgFuel, 360, -80, 50);
+    btnResume.disabled = true;
+    btnPause.disabled = true;
+    loadScore();
+}
+
 function startGame() {
+    if (isGameOver){
+        window.location = window.location;
+    }
+    saveScore();
     isPlayGame = true;
-    document.getElementById('btn-start').disabled = true;
-    //document.getElementById('btn-resume').disabled = true;
-    //document.getElementById('btn-pause').disabled = false;
+    btnStart.disabled = true;
+    btnPause.disabled = false;
+    btnResume.disabled = true;
     game = setInterval(updateScreen, 70);
     //let randTime = (Math.floor(Math.random() * (10 - 5)) + 5) * 1000;
     createOtherCar();
@@ -31,6 +53,7 @@ function stopGame() {
 
 function gameOver() {
     stopGame();
+    isGameOver = true;
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.beginPath();
     context.font = "50px Arial";
@@ -40,7 +63,17 @@ function gameOver() {
     /*document.getElementById('btn-control').innerHTML = '<button id="btn-start" onclick="startGame()">Start</button>\n' +
         '    <button onclick="resumeGame()">Play</button>\n' +
         '    <button onclick="pauseGame()">Pause</button>'*/
-    document.getElementById('btn-start').disabled = false;
+    btnStart.disabled = false;
+    context.font = "30px Arial";
+    let timeReload = 6;
+    setInterval(function () {
+        context.clearRect(60, 240, canvas.width, canvas.height);
+        context.fillText('Tải lại trang sau ' + (timeReload-1) + 's', 85, 290);
+        timeReload--;
+        if (timeReload === 0){
+            window.location = window.location;
+        }
+    }, 1000);
 }
 
 function pauseGame() {
@@ -53,23 +86,34 @@ function pauseGame() {
 function resumeGame() {
     isPlayGame = true;
     game = setInterval(updateScreen, 70);
+    if (otherCar.y === -85)
+        createOtherCar(2500);
+    else
+        objMove('Car', otherCar.x);
+    if (fuel.y === -80)
+        createFuel(2500);
+    else
+        objMove('Fuel', fuel.x);
     document.getElementById('btn-resume').disabled = true;
     document.getElementById('btn-pause').disabled = false;
 }
 
 function onKeyDown(event) {
-    if (event.key == 'ArrowLeft' || event.key == 'ArrowRight') {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
         if (!isOutScreen(myCar, canvas, event.key) && isPlayGame) {
             carMove(event.key);
         }
     }
 }
 
-// game check
+/* ################# */
+
+
+/* ### Game check ### */
 function isOutScreen(obj, screen, direc) {
-    if (direc == 'ArrowLeft' && (obj.x - obj.speed) < 0)
+    if (direc === 'ArrowLeft' && (obj.x - obj.speed) < 0)
         return true;
-    else if (direc == 'ArrowRight' && (obj.x + obj.width + obj.speed) > screen.width)
+    else if (direc === 'ArrowRight' && (obj.x + obj.width + obj.speed) > screen.width)
         return true;
     return false;
 }
@@ -83,24 +127,14 @@ function checkInteractCar(obj1, obj2) {
     let right2 = obj2.x + obj2.width;
     let top2 = obj2.y;
     let bottom2 = obj2.y + obj2.height;
-    if (right1 < left2 || bottom1 < top2 || left1 > right2 || top1 > bottom2) {
-        return false;
-    } else {
-        return true;
-    }
+    return !(right1 < left2 || bottom1 < top2 || left1 > right2 || top1 > bottom2);
 }
 
-// game
-function loadGame() {
-    window.addEventListener('keydown', onKeyDown);
-    myCar = new Car(imgMyCar, (canvas.width / 2) - 30, canvas.height - 85);
-    otherCar = new Car(imgOtherCar, 30, -85);
-    fuel = new Fuel(imgFuel, 360, -80, 50);
-    //document.getElementById('btn-resume').disabled = true;
-    //document.getElementById('btn-pause').disabled = true;
-}
+/* ################# */
 
-// display
+
+/* ### Game draw ### */
+
 function drawCar(img, x, y) {
     context.beginPath();
     context.drawImage(img, x, y);
@@ -113,15 +147,57 @@ function drawFuel(img, x, y) {
     context.closePath();
 }
 
-function createOtherCar() {
-    let randNum = Math.floor(Math.random() * 360);
-    //console.log(randNum);
-    setTimeout(objMove, 5000, 'Car', randNum);
+function drawFuelBar(num) {
+    let fuelBar = document.getElementById('fuelBar');
+    fuelBar.innerText = myCar.fuel + "%";
+    if (num >= 75) {
+        fuelBar.style.backgroundColor = '#00ff00';
+        fuelBar.style.color = '#000000';
+    } else if (num < 75 && num >= 25)
+        fuelBar.style.backgroundColor = '#ffff00';
+    else
+        fuelBar.style.backgroundColor = '#ff0000';
+    fuelBar.style.width = num + "%";
 }
 
-function createFuel() {
+function updateScreen() {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    drawLane();
+    drawCar(otherCar.img, otherCar.x, otherCar.y);
+    drawCar(myCar.img, myCar.x, myCar.y);
+    drawFuel(imgFuel, fuel.x, fuel.y);
+    drawFuelBar(myCar.fuel)
+    if (checkInteractCar(otherCar, myCar)) {
+        gameOver();
+    }
+    if (checkInteractCar(fuel, myCar)) {
+        addFuel(fuel.point);
+        fuel.setPos(fuel.x, 600);
+    }
+    drawScore();
+}
+
+/* ################# */
+
+
+/* ### Game .... ### */
+
+function addFuel(num) {
+    if ((myCar.fuel + num) > myCar.maxFuel)
+        myCar.setFuel(100);
+    else
+        myCar.addFuel(num);
+}
+
+function createOtherCar(timeOut = 5000) {
     let randNum = Math.floor(Math.random() * 360);
-    setTimeout(objMove, 5000, 'Fuel', randNum);
+    //console.log(randNum);
+    setTimeout(objMove, timeOut, 'Car', randNum);
+}
+
+function createFuel(timeOut = 5000) {
+    let randNum = Math.floor(Math.random() * 360);
+    setTimeout(objMove, timeOut, 'Fuel', randNum);
 }
 
 function objMove(objType, x) {
@@ -131,6 +207,7 @@ function objMove(objType, x) {
         if (objType === 'Car') {
             otherCar.setPos(parseInt(x), otherCar.y + 20);
             if (otherCar.y >= 600) {
+                addScore(10);
                 otherCar.y = -85;
                 console.log('Tạo xe mới sau ' + randTime + 'giây');
                 setTimeout(createOtherCar, randTime);
@@ -160,53 +237,7 @@ function carMove(direc) {
     myCar.fuel--;
 }
 
-function drawLane() {
-    if (isPlayGame) {
-        for (let i = 0; i < 10; i++) {
-            if (yLane == -60) {
-                yLane = -160;
-            }
-            context.beginPath();
-            context.fillStyle = '#ffffff'
-            context.rect(120, (i * 100) + yLane, 30, 60); //x, y , rộng, cao
-            context.rect(270, (i * 100) + yLane, 30, 60); // y = thứ tự * chiều cao + vị trí đã di chuyển + khoảng cách
-            context.fill();
-            context.closePath();
-            //console.log(yLane);
-        }
-        yLane += 20;
-    }
-}
+/* ################# */
 
-function addFuel(i) {
-    if (myCar.fuel > 50 && i > 50)
-        myCar.fuel = 100;
-    else
-        myCar.fuel += i;
-}
 
-function drawFuelBar(num) {
-    let str = '';
-    if (num > 75) {
-        str = 'Hi'
-    }
-    document.getElementById('fuelBar').style.width = num + "%";
-}
-
-function updateScreen() {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    drawLane();
-    drawCar(otherCar.img, otherCar.x, otherCar.y);
-    drawCar(myCar.img, myCar.x, myCar.y);
-    drawFuel(imgFuel, fuel.x, fuel.y);
-    drawFuelBar(myCar.fuel)
-    if (checkInteractCar(otherCar, myCar)) {
-        gameOver();
-    }
-    if (checkInteractCar(fuel, myCar)) {
-        //console.log('' + fuel.x + '-' + fuel.y + '-' + fuel.width + '-' + fuel.height)
-        addFuel(fuel.point);
-        fuel.setPos(fuel.x, 600);
-    }
-}
-
+loadGame();

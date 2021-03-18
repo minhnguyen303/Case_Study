@@ -15,12 +15,16 @@ class Car {
         this.y = y;
     }
 
+    addFuel(num) {
+        this.fuel += num;
+    }
+
     setFuel(num) {
         this.fuel = num;
     }
 
     move(direc) {
-        if (direc == 'ArrowLeft')
+        if (direc === 'ArrowLeft')
             this.x -= this.speed;
         else
             this.x += this.speed;

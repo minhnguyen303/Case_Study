@@ -3,26 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <title>Mad Driver</title>
-    <script src="js/Car.js"></script>
-    <script src="js/Fuel.js"></script>
     <link rel="stylesheet" href="styles/styles.css">
 </head>
-<body onload="loadGame()">
+<body onload="">
 <canvas id="screen" width="420" height="450" style="background-color: #737373"></canvas>
 
 <div id="maxFuel">
-    <div id="fuelBar">Fuel&emsp;</div>
+    <div id="scoreLabel">Score: 0</div>
+    <div id="bestScoreLabel">Best score: 0</div>
+    <div id="fuelLabel">Fuel</div>
+    <div id="fuelBar">100%</div>
 </div>
 
 <div id="btn-control">
     <button id="btn-start" onclick="startGame()">Start</button>
-    <!--<button id="btn-resume" onclick="resumeGame()">Resume</button>
-    <button id="btn-pause" onclick="pauseGame()">Pause</button>-->
+    <button id="btn-resume" onclick="resumeGame()">Resume</button>
+    <button id="btn-pause" onclick="pauseGame()">Pause</button>
+</div>
+<div id="tutorial">
+    <h4>Sử dụng phím mũi tên trái và phải để điều khiển xe ô tô</h4>
 </div>
 
 <img src="images/car.png" alt="myCar" style="display: none" id="myCar">
 <img src="images/car1.png" alt="otherCar" style="display: none" id="otherCar">
 <img src="images/fuel.png" alt="fuel" style="display: none" id="fuel">
-<script src="js/scripts.js"></script>
+
+<!-- Load JavaScript -->
+<script src="js/OOP/Car.js"></script>
+<script src="js/OOP/Fuel.js"></script>
+<script src="js/function/score.js"></script>
+<script src="js/function/road.js"></script>
+<script src="js/function/game.js"></script>
+<!-- ############### -->
 </body>
 </html>
